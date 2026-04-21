@@ -4,6 +4,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Fallbacks caso a variável de ambiente falhe */
+  --cor-casamento-env: #8b3443;
+  --cor-fundo-env: #faf7f2;
 }
 
 @theme inline {
@@ -11,6 +15,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Mágica do Tailwind v4: cria dinamicamente as classes de cor */
+  --color-casamento: var(--cor-casamento-env);
+  --color-fundo: var(--cor-fundo-env);
 }
 
 @media (prefers-color-scheme: dark) {

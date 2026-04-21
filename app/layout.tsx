@@ -1,15 +1,10 @@
 "use client";
 
-import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "./components/Footer";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-/* export const metadata: Metadata = {
-  title: "Casamento de Álex e Isabelle",
-  description: "Site para o casamento de Álex e Isabelle",
-}; */
+import { CONFIG } from "../lib/constants";
 
 export default function RootLayout({
   children,
@@ -35,7 +30,14 @@ export default function RootLayout({
   }, [pathname, router]);
 
   return (
-    <html lang="en">
+    <html 
+      lang="pt-BR"
+      // INJEÇÃO DAS VARIÁVEIS CSS PARA O TAILWIND LER
+      style={{ 
+        '--cor-casamento-env': CONFIG.visual.primaria, 
+        '--cor-fundo-env': CONFIG.visual.fundo 
+      } as React.CSSProperties}
+    >
       <body>
         {children}
         <Footer />

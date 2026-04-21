@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CONFIG } from "../../lib/constants";
 
 export default function Login() {
   const [nome, setNome] = useState("");
@@ -28,18 +29,15 @@ export default function Login() {
         localStorage.setItem("codigoConvite", data.codigo);
         localStorage.setItem("limiteAcompanhantes", data.limiteAcompanhantes);
         
-        // Opcional: mostrar toast de sucesso antes de redirecionar
         mostrarToast("Acesso liberado! Bem-vindo(a).", "sucesso");
         
         setTimeout(() => {
           window.location.href = '/inicio';
         }, 1000);
       } else {
-        // SUBSTITUÍDO: alert por mostrarToast
         mostrarToast("Código não encontrado. Verifique seu convite!");
       }
     } catch (err) {
-      // SUBSTITUÍDO: alert por mostrarToast
       mostrarToast("Erro ao validar. Tente novamente.");
     } finally {
       setLoading(false);
@@ -50,7 +48,10 @@ export default function Login() {
     <div className="h-screen flex text-center items-center justify-center bg-[url('/images/bordas_floridas.png')] bg-no-repeat bg-cover relative">
       <form onSubmit={handleLogin} className="w-full max-w-md p-6">
         <div>
-          <h1 className="font-casamento text-5xl font-bold pb-1 pt-15 text-[#8b3443]">Álex e Isabelle</h1>
+          {/* VARIÁVEL APLICADA AQUI NO NOME E NA COR */}
+          <h1 className="font-casamento text-5xl font-bold pb-1 pt-15 text-casamento">
+            {CONFIG.casal.noivo} e {CONFIG.casal.noiva}
+          </h1>
           <p className="pb-2">Nosso Grande Dia!</p>
           
           <img src="/images/alianças.png" alt="Alianças" className="w-auto h-15 mx-auto mb-5" />
@@ -65,13 +66,15 @@ export default function Login() {
               onChange={(e) => setCodigo(e.target.value)}
               required
               placeholder="Ex: A1B2C3"
-              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-[#8b3443] mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-[#8b3443] focus:border-transparent bg-white uppercase"
+              // Usando as novas classes do Tailwind (focus:ring-casamento)
+              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-casamento mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-casamento focus:border-transparent bg-white uppercase"
             />
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 bg-[#8b3443] text-white font-bold py-2 px-4 rounded hover:bg-[#a0525d] hover:scale-105 focus:outline-none focus:shadow-outline cursor-pointer flex items-center justify-center transition duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+              // Usando bg-casamento e uma opacidade no hover para funcionar com qualquer cor futura
+              className="mt-2 bg-casamento text-white font-bold py-2 px-4 rounded hover:opacity-90 hover:scale-105 focus:outline-none focus:shadow-outline cursor-pointer flex items-center justify-center transition duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? "Validando..." : "Entrar na Celebração"}
             </button>
@@ -80,11 +83,11 @@ export default function Login() {
         </div>
       </form>
 
-      {/* --- RENDERIZAÇÃO DO TOAST --- */}
+      {/* --- RENDERIZAÇÃO DO TOAST (Cores ajustadas) --- */}
       {toast.visivel && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-bottom-5 duration-300">
-          <div className={`bg-white border-l-4 ${toast.tipo === 'sucesso' ? 'border-green-500' : 'border-[#8b3443]'} shadow-2xl rounded-xl px-6 py-4 flex items-center gap-3`}>
-            <span className={`${toast.tipo === 'sucesso' ? 'text-green-500 bg-green-50' : 'text-[#8b3443] bg-[#8b3443]/10'} p-2 rounded-full`}>
+          <div className={`bg-white border-l-4 ${toast.tipo === 'sucesso' ? 'border-green-500' : 'border-casamento'} shadow-2xl rounded-xl px-6 py-4 flex items-center gap-3`}>
+            <span className={`${toast.tipo === 'sucesso' ? 'text-green-500 bg-green-50' : 'text-casamento bg-casamento/10'} p-2 rounded-full`}>
               {toast.tipo === 'sucesso' ? (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
