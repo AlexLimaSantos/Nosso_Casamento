@@ -56,16 +56,6 @@ export default function Login() {
           <img src="/images/alianças.png" alt="Alianças" className="w-auto h-15 mx-auto mb-5" />
           
           <div className="flex flex-col ml-10 mr-10 bg-white/80 p-6 rounded-xl backdrop-blur-sm shadow-sm">
-            <label htmlFor="nome" className="font-bold text-left text-gray-800">Nome Completo</label>
-            <input
-              id="nome"
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-              placeholder="Digite Seu Nome"
-              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-[#8b3443] mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-[#8b3443] focus:border-transparent bg-white"
-            /> 
 
             <label htmlFor="codigo" className="font-bold text-left text-gray-800">Código do Convite</label>
             <input
@@ -74,8 +64,8 @@ export default function Login() {
               value={codigo}
               onChange={(e) => setCodigo(e.target.value)}
               required
-              placeholder="Ex: Y4504E"
-              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-[#8b3443] mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-[#8b3443] focus:border-transparent bg-white"
+              placeholder="Ex: A1B2C3"
+              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-[#8b3443] mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-[#8b3443] focus:border-transparent bg-white uppercase"
             />
 
             <button

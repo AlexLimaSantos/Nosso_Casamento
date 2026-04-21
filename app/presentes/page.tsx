@@ -10,11 +10,14 @@ export default function PresentesPage() {
   const [presentes, setPresentes] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [presenteSelecionado, setPresenteSelecionado] = useState<any | null>(null);
+  const [presenteParaCancelar, setPresenteParaCancelar] = useState<any | null>(null); // NOVO ESTADO
   const [nomeConvidado, setNomeConvidado] = useState("");
   const [codigoConvidado, setCodigoConvidado] = useState("");
   const [processando, setProcessando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [pix, setPix] = useState(false);
+  const [copiadoPix, setCopiadoPix] = useState(false);
 
   // --- ESTADO DO TOAST ---
   const [toast, setToast] = useState({ visivel: false, mensagem: "", tipo: "erro" });
@@ -56,9 +59,15 @@ export default function PresentesPage() {
     setSucesso(false);
   };
 
+  const abrirPix = () => {
+    setPix(true);
+  };
+
   const fecharModal = () => {
     setPresenteSelecionado(null);
+    setPresenteParaCancelar(null); // Fecha o modal de cancelamento também
     setSucesso(false);
+    setPix(false);
   };
 
   const confirmarPresente = async () => {
@@ -89,10 +98,38 @@ export default function PresentesPage() {
     }
   };
 
+  // --- NOVA FUNÇÃO: CANCELAR RESERVA ---
+  const cancelarReserva = async () => {
+    setProcessando(true);
+    try {
+      const res = await fetch('/api/presentes', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idPresente: presenteParaCancelar.id,
+          codigoConvite: codigoConvidado
+        }),
+      });
+
+      if (res.ok) {
+        const reload = await fetch('/api/presentes');
+        const novosDados = await reload.json();
+        setPresentes(novosDados);
+        fecharModal();
+        mostrarToast("Reserva removida com sucesso.", "sucesso");
+      } else {
+        mostrarToast("Erro ao cancelar a reserva.");
+      }
+    } catch (err) {
+      mostrarToast("Erro ao conectar com o servidor.");
+    } finally {
+      setProcessando(false);
+    }
+  };
+
   const copiarEndereco = async () => {
     const endereco = "Rua Exemplo do Endereço, 123 - Bairro, Salvador, BA - CEP: 40000-000";
 
-    // Clipboard API Moderna
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(endereco);
@@ -103,7 +140,6 @@ export default function PresentesPage() {
       }
     }
 
-    // Fallback para contextos não-seguros
     try {
       const textArea = document.createElement("textarea");
       textArea.value = endereco;
@@ -120,10 +156,46 @@ export default function PresentesPage() {
     }
   };
 
+  const copiarPix = async () => {
+    const chavePix = "00020126820014br.gov.bcb.pix013625f9aa5a-7115-41b8-95af-479e11bb49a90220Casamento Alex e Isa5204000053039865802BR5920Alex Lima Dos Santos6009Sao Paulo62230519daqr24273250642711163048824";
+
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(chavePix);
+        sucessoCopiaPix();
+        return;
+      } catch (err) {
+        console.error("Erro Clipboard API:", err);
+      }
+    }
+
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = chavePix;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const result = document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      if (result) sucessoCopiaPix();
+    } catch (err) {
+      mostrarToast("Erro ao copiar. Tente selecionar o texto.", "erro");
+    }
+  };
+
   const sucessoCopia = () => {
     setCopiado(true);
     mostrarToast("Endereço copiado! 📋", "sucesso");
     setTimeout(() => setCopiado(false), 2000);
+  };
+
+  const sucessoCopiaPix = () => {
+    setCopiadoPix(true);
+    mostrarToast("Código PIX copiado! 💸", "sucesso");
+    setTimeout(() => setCopiadoPix(false), 2000);
   };
 
   // --- LÓGICA DE FILTRAGEM ---
@@ -169,9 +241,8 @@ export default function PresentesPage() {
               <div className="mt-4">
                 <button
                   onClick={copiarEndereco}
-                  className={`px-6 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-sm ${
-                    copiado ? "bg-green-600 text-white" : "bg-[#8b3443] text-white hover:bg-[#a0525d] active:scale-95"
-                  }`}
+                  className={`px-6 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-sm ${copiado ? "bg-green-600 text-white" : "bg-[#8b3443] text-white hover:bg-[#a0525d] active:scale-95"
+                    }`}
                 >
                   {copiado ? "Endereço Copiado! ✓" : "Copiar Endereço Completo"}
                 </button>
@@ -208,12 +279,23 @@ export default function PresentesPage() {
                         <p>Cor: <span className="font-semibold">{p.cor}</span></p>
                         <p>Valor: <span className="font-semibold text-[#8b3443]">{p.mediaValor}</span></p>
                       </div>
-                      
+
                       <div className="w-full space-y-2 mt-auto border-t border-gray-50 pt-4">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Links para compra:</p>
                         {p.link1 && <a href={p.link1} target="_blank" className="block w-full bg-[#8b3443] text-white text-xs font-bold py-2.5 rounded-xl">🛒 Loja 1</a>}
                         {p.link2 && <a href={p.link2} target="_blank" className="block w-full border border-[#8b3443] text-[#8b3443] text-xs font-bold py-2.5 rounded-xl">🛒 Loja 2</a>}
                         {p.link3 && <a href={p.link3} target="_blank" className="block w-full border border-[#8b3443] text-[#8b3443] text-xs font-bold py-2.5 rounded-xl">🛒 Loja 3</a>}
+                        
+                        {/* BOTÃO DE CANCELAR RESERVA */}
+                        <button 
+                          onClick={() => setPresenteParaCancelar(p)}
+                          className="mt-4 text-[10px] text-red-400 hover:text-red-600 font-bold uppercase tracking-wider flex items-center justify-center gap-1 w-full pt-2 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                          Remover Item
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -229,21 +311,22 @@ export default function PresentesPage() {
                   <div className="w-28 h-28 mb-4 bg-gray-50 rounded-full flex items-center justify-center overflow-hidden p-3 shadow-inner">
                     {p.imagem ? <img src={p.imagem} alt={p.item} className="w-full h-full object-contain" /> : <span className="text-4xl">🎁</span>}
                   </div>
-                  
+
                   <h3 className="text-lg font-bold text-gray-800 mb-1">{p.item}</h3>
                   <div className="text-sm text-gray-500 mb-6">
                     <p>Cor: <span className="font-semibold">{p.cor}</span></p>
                     <p>Valor:</p>
                     <p className="font-bold text-[#8b3443] mt-1">{p.mediaValor}</p>
                   </div>
-                  
+
                   <div className="w-full space-y-2 mb-6 mt-auto">
                     {p.link1 && <a href={p.link1} target="_blank" className="block w-full text-xs border border-gray-300 text-gray-500 py-2 rounded-lg hover:bg-gray-50 transition">🔗 Ver na Loja 1</a>}
                     {p.link2 && <a href={p.link2} target="_blank" className="block w-full text-xs border border-gray-300 text-gray-500 py-2 rounded-lg hover:bg-gray-50 transition">🔗 Ver na Loja 2</a>}
+                    {p.link3 && <a href={p.link3} target="_blank" className="block w-full text-xs border border-gray-300 text-gray-500 py-2 rounded-lg hover:bg-gray-50 transition">🔗 Ver na Loja 3</a>}
                   </div>
 
                   <div className="w-full border-t border-gray-100 pt-4">
-                    <button 
+                    <button
                       onClick={() => abrirModal(p)}
                       className="w-full bg-[#8b3443] text-white py-3 rounded-xl text-sm font-bold hover:bg-[#a0525d] transition shadow-md active:scale-95"
                     >
@@ -252,6 +335,27 @@ export default function PresentesPage() {
                   </div>
                 </div>
               ))}
+
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center hover:shadow-xl transition-all duration-300">
+                <div className="w-28 h-28 mb-4 bg-gray-50 rounded-full flex items-center justify-center overflow-hidden p-3 shadow-inner">
+                  <img src='https://viagemninja.com/wp-content/uploads/2014/10/para-onde-viajar-em-lua-de-mel.jpg' alt='Lua de Mel' className="w-full h-full object-contain" />
+                </div>
+
+                <h3 className="text-lg font-bold text-gray-800 mb-1">Lua de Mel</h3>
+                <div className="text-sm text-gray-500 mb-6">
+                  <p>Valor:</p>
+                  <p className="font-bold text-[#8b3443] mt-1">Pix Aleatório</p>
+                </div>
+
+                <div className="w-full border-t border-gray-100 pt-4 mt-auto">
+                  <button
+                    onClick={() => abrirPix()}
+                    className="w-full bg-[#8b3443] text-white py-3 rounded-xl text-sm font-bold hover:bg-[#a0525d] transition shadow-md active:scale-95"
+                  >
+                    Ver Pix
+                  </button>
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -264,7 +368,7 @@ export default function PresentesPage() {
             <span className={`${toast.tipo === 'sucesso' ? 'text-green-600 bg-green-50' : 'text-[#8b3443] bg-[#8b3443]/10'} p-2 rounded-full`}>
               {toast.tipo === 'sucesso' ? (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
@@ -279,7 +383,7 @@ export default function PresentesPage() {
         </div>
       )}
 
-      {/* MODAL DE CONFIRMAÇÃO */}
+      {/* MODAL DE CONFIRMAÇÃO DA RESERVA */}
       {presenteSelecionado && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-center">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
@@ -303,13 +407,91 @@ export default function PresentesPage() {
                 <>
                   <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">✓</div>
                   <h4 className="text-2xl font-bold text-gray-800 mb-3">Reserva Confirmada!</h4>
-                  <p className="text-gray-600 mb-8">Muito obrigado pelo presente, {nomeConvidado}! Isso ajudará muito na nossa nova fase em Salvador.</p>
+                  <p className="text-gray-600 mb-8">Muito obrigado pelo presente, {nomeConvidado}! Isso ajudará muito na nossa nova fase.</p>
                   <div className="flex flex-col gap-3">
                     <Link href="/rsvp" className="w-full bg-green-600 text-white font-bold py-4 rounded-2xl shadow-md hover:bg-green-700 transition">Confirmar Presença Também</Link>
                     <button onClick={fecharModal} className="w-full border-2 border-[#8b3443] text-[#8b3443] font-bold py-3.5 rounded-2xl hover:bg-gray-50 transition">Voltar para a Lista</button>
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CANCELAMENTO DA RESERVA */}
+      {presenteParaCancelar && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-center">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className="bg-red-500 px-6 py-5 flex justify-between items-center text-white">
+              <h3 className="font-bold text-lg">Remover Reserva</h3>
+              <button onClick={fecharModal} className="text-2xl leading-none hover:rotate-90 transition-transform">×</button>
+            </div>
+            <div className="p-8">
+              <h4 className="text-xl font-bold text-gray-800 mb-3">{presenteParaCancelar.item}</h4>
+              <p className="text-gray-600 mb-8 leading-relaxed">Tem certeza que deseja remover este item da sua lista de presentes escolhidos? Ele voltará a ficar disponível para outros convidados.</p>
+              <div className="flex gap-4">
+                <button onClick={fecharModal} className="w-full py-3.5 border border-gray-200 rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition">Voltar</button>
+                <button onClick={cancelarReserva} disabled={processando} className="w-full bg-red-500 text-white font-bold py-3.5 rounded-xl hover:bg-red-600 shadow-lg disabled:opacity-50">
+                  {processando ? "Removendo..." : "Sim, Remover"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE PIX */}
+      {pix && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-center">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className="bg-[#8b3443] px-6 py-5 flex justify-between items-center text-white">
+              <h3 className="font-bold text-lg">Presentear com Pix</h3>
+              <button onClick={fecharModal} className="text-2xl leading-none hover:rotate-90 transition-transform">×</button>
+            </div>
+
+            <div className="p-8">
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Nos ajude fazendo uma doação com qualquer valor! Escaneie o QR Code ou copie o código abaixo.
+              </p>
+
+              <div className="w-48 h-48 mx-auto mb-6 p-2 border-2 border-gray-100 rounded-2xl shadow-sm">
+                <img src="/images/pix.jpeg" alt="QR Code PIX" className="w-full h-full object-contain rounded-xl" />
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl shadow-inner mb-6 relative group">
+                <p className="text-xs text-gray-500 font-mono break-all text-left">
+                  00020126820014br.gov.bcb.pix013625f9aa5a-7115-41b8-95af-479e11bb49a90220Casamento Alex e Isa5204000053039865802BR5920Alex Lima Dos Santos6009Sao Paulo62230519daqr24273250642711163048824
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={copiarPix}
+                  className={`w-full py-3.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 ${copiadoPix
+                    ? "bg-green-600 text-white scale-95"
+                    : "bg-[#8b3443] text-white hover:bg-[#a0525d] active:scale-95"
+                    }`}
+                >
+                  {copiadoPix ? (
+                    <>✓ Código Copiado!</>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                      Copiar Código Pix
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={fecharModal}
+                  className="w-full py-3.5 border-2 border-gray-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         </div>
