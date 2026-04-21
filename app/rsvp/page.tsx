@@ -225,8 +225,6 @@ export default function RSVPPage() {
           </div>
         </div>
       )}
-      
-      <Footer />
     </div>
   );
 }
