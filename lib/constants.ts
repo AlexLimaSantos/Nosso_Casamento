@@ -11,6 +11,7 @@ export const CONFIG = {
     madrinha1: process.env.NEXT_PUBLIC_COR_MADRINHA_1 || "#8b3443",
     madrinha2: process.env.NEXT_PUBLIC_COR_MADRINHA_2 || "#b85b6b",
     madrinha3: process.env.NEXT_PUBLIC_COR_MADRINHA_3 || "#d68a96",
+    tipoCarrossel: process.env.NEXT_PUBLIC_TIPO_CARROSSEL || "fixo",
   },
   logistica: {
     endereco: process.env.NEXT_PUBLIC_ENDERECO_ENVIO || "",
@@ -18,5 +19,5 @@ export const CONFIG = {
     localNome: process.env.NEXT_PUBLIC_LOCAL_NOME || "Espaço do Evento",
     localEndereco: process.env.NEXT_PUBLIC_LOCAL_ENDERECO || "Cidade, UF",
     localMapsUrl: process.env.NEXT_PUBLIC_LOCAL_MAPS_URL || "#",
-  }
+  },
 };
