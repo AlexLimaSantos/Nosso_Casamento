@@ -17,7 +17,10 @@ export default function InicioCasamentoPage() {
     ? new Date(CONFIG.casal.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) 
     : "[Data a definir]";
 
-  const isFundo = CONFIG.visual.tipoCarrossel === "fundo";
+  // Identifica o que deve ser mostrado baseado no .env
+  const tipoCarrossel = CONFIG.visual.tipoCarrossel;
+  const mostrarFundo = tipoCarrossel === "fundo" || tipoCarrossel === "ambos";
+  const mostrarFixo = tipoCarrossel === "fixo" || tipoCarrossel === "ambos";
 
   return (
     <div className="min-h-screen bg-fundo font-sans flex flex-col relative">
@@ -26,12 +29,15 @@ export default function InicioCasamentoPage() {
       <main className="flex-grow w-full flex flex-col">
         
         {/* SESSÃO HERO (Topo) */}
-        <div className={`relative w-full ${isFundo ? 'min-h-[85vh] flex flex-col justify-center pt-20' : 'pt-32'}`}>
+        {/* AJUSTE: Mudamos para pt-36 (mais espaço) e min-h-screen para garantir que nada fique espremido */}
+        <div className={`relative w-full ${mostrarFundo ? 'min-h-screen flex flex-col justify-center pt-36 pb-20' : 'pt-36 pb-12'}`}>
           
-          {/* Se a variável for "fundo", o carrossel é renderizado aqui atrás */}
-          {isFundo && <PhotoCarousel />}
+          {/* CARROSSEL FUNDO (Só aparece se for "fundo" ou "ambos") */}
+          {mostrarFundo && <PhotoCarousel variant="fundo" />}
 
-          <div className="text-center relative z-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* AJUSTE: Adicionado um mt-4 (margin-top) extra como margem de segurança */}
+          <div className="text-center relative z-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            
             <h1 className="font-casamento text-6xl md:text-7xl text-casamento mb-6 drop-shadow-sm">
               {CONFIG.casal.noivo} e {CONFIG.casal.noiva}
             </h1>
@@ -50,22 +56,20 @@ export default function InicioCasamentoPage() {
               </Link>
               <Link 
                 href="/presentes" 
-                className={`w-full sm:w-auto border-2 border-casamento text-casamento font-bold py-3.5 px-8 rounded-full transition-colors shadow-sm text-lg hover:-translate-y-1 transform duration-200 ${isFundo ? 'bg-white/80 backdrop-blur-sm hover:bg-white' : 'bg-white hover:bg-fundo'}`}
+                className={`w-full sm:w-auto border-2 border-casamento text-casamento font-bold py-3.5 px-8 rounded-full transition-colors shadow-sm text-lg hover:-translate-y-1 transform duration-200 ${mostrarFundo ? 'bg-white/80 backdrop-blur-sm hover:bg-white' : 'bg-white hover:bg-fundo'}`}
               >
                 Lista de Presentes
               </Link>
             </div>
             
-            {/* Divisória apenas no modo Fixo */}
-            {!isFundo && <div className="w-24 h-1 bg-casamento mx-auto mt-16 rounded-full opacity-50 mb-16"></div>}
-            
-            {/* Se a variável for "fixo", o carrossel é renderizado aqui embaixo */}
-            {!isFundo && <PhotoCarousel />}
+            {/* Divisória e CARROSSEL FIXO (Só aparece se for "fixo" ou "ambos") */}
+            {mostrarFixo && <div className="w-24 h-1 bg-casamento mx-auto mt-16 rounded-full opacity-50 mb-16"></div>}
+            {mostrarFixo && <PhotoCarousel variant="fixo" />}
           </div>
         </div>
 
         {/* SESSÃO DE INFORMAÇÕES (Cards) */}
-        <section className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full ${isFundo ? 'mt-16 mb-24 relative z-20' : 'mb-24'}`}>
+        <section className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full ${mostrarFundo ? 'mt-16 mb-24 relative z-20' : 'mb-24'}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
 
             {/* Card 1: Data e Local */}

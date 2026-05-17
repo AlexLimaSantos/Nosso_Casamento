@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Álex e Isabelle - Login",
-  description: "Tela de Login para entrar na celebração de Álex e Isabelle",
+  title: "Álex e Isabelle - Presentes",
+  description: "Tela de Presentes de Álex e Isabelle",
 };
 
 export default function RootLayout({

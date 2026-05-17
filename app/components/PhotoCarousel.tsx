@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CONFIG } from "../../lib/constants";
 
 const FOTOS_DO_CASAL = [
   "/images/foto1.jpeg",
@@ -9,9 +8,13 @@ const FOTOS_DO_CASAL = [
   "/images/foto3.jpeg",
 ];
 
-export default function PhotoCarousel() {
+// Definimos que quem chamar o componente tem que dizer o formato
+interface PhotoCarouselProps {
+  variant: "fundo" | "fixo";
+}
+
+export default function PhotoCarousel({ variant }: PhotoCarouselProps) {
   const [indexAtual, setIndexAtual] = useState(0);
-  const isFundo = CONFIG.visual.tipoCarrossel === "fundo";
 
   useEffect(() => {
     const intervalo = setInterval(() => {
@@ -22,7 +25,7 @@ export default function PhotoCarousel() {
   }, []);
 
   // --- MODO: PLANO DE FUNDO ---
-  if (isFundo) {
+  if (variant === "fundo") {
     return (
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
         {FOTOS_DO_CASAL.map((foto, index) => (
