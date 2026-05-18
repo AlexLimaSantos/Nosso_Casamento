@@ -12,6 +12,7 @@ const FOTOS_DO_CASAL = [
   "/images/foto9.jpg",
   "/images/foto10.jpg",
   "/images/foto11.jpg",
+  "/images/foto12.jpg",
 ];
 
 // Agora o componente RECEBE de fora qual foto mostrar e avisa se clicarem na seta

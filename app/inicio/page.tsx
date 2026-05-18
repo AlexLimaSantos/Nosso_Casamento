@@ -8,7 +8,7 @@ import PhotoCarousel from "../components/PhotoCarousel";
 import { CONFIG } from "../../lib/constants"; 
 
 // Definimos o total de fotos para o temporizador saber quando reiniciar
-const TOTAL_FOTOS = 11;
+const TOTAL_FOTOS = 12;
 
 const Icon = ({ path }: { path: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-casamento">
