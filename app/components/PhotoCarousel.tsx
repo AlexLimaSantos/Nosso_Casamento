@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image"; // <-- IMPORTANTE: O superpoder do Next.js!
+
 const FOTOS_DO_CASAL = [
   "/images/foto1.jpg",
   "/images/foto2.jpg",
@@ -15,7 +17,6 @@ const FOTOS_DO_CASAL = [
   "/images/foto12.jpg",
 ];
 
-// Agora o componente RECEBE de fora qual foto mostrar e avisa se clicarem na seta
 interface PhotoCarouselProps {
   variant: "fundo" | "fixo";
   indexAtual: number;
@@ -41,20 +42,20 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
   // --- MODO: PLANO DE FUNDO ---
   if (variant === "fundo") {
     return (
-      <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-casamento/5">
         {FOTOS_DO_CASAL.map((foto, index) => (
-          <img
+          <Image
             key={index}
             src={foto}
             alt={`Foto do casal ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+            fill
+            priority={index === 0} // A primeira foto carrega imediatamente, as outras em segundo plano!
+            className={`object-cover transition-opacity duration-1000 ease-in-out ${
               index === indexAtual ? "opacity-100" : "opacity-0"
             }`}
           />
         ))}
-        {/* Película de desfoque/clareamento para garantir a leitura do texto */}
         <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 transition-all"></div>
-        {/* Degradê na base para mesclar perfeitamente com a cor de fundo da página */}
         <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-fundo to-transparent z-20"></div>
       </div>
     );
@@ -62,22 +63,24 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
 
   // --- MODO: CARROSSEL FIXO (Padrão) ---
   return (
-    <div className="relative w-full max-w-4xl mx-auto aspect-[4/3] sm:aspect-[16/9] overflow-hidden rounded-[2rem] shadow-lg border border-casamento/10 mb-20 group z-10">
+    <div className="relative w-full max-w-sm md:max-w-md mx-auto aspect-[9/16] overflow-hidden rounded-[2rem] shadow-lg border border-casamento/10 mb-20 group z-10 bg-white/50">
       {FOTOS_DO_CASAL.map((foto, index) => (
-        <img
+        <Image
           key={index}
           src={foto}
           alt={`Foto do casal ${index + 1}`}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+          fill
+          priority={index === 0} // A primeira foto carrega imediatamente, as outras em segundo plano!
+          className={`object-cover transition-opacity duration-1000 ease-in-out ${
             index === indexAtual ? "opacity-100" : "opacity-0"
           }`}
         />
       ))}
 
-      {/* SETA ESQUERDA (Aparece no hover do grupo) */}
+      {/* SETA ESQUERDA */}
       <button
         onClick={handleVoltar}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
         aria-label="Foto anterior"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
@@ -85,10 +88,10 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
         </svg>
       </button>
 
-      {/* SETA DIREITA (Aparece no hover do grupo) */}
+      {/* SETA DIREITA */}
       <button
         onClick={handleAvancar}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
         aria-label="Próxima foto"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
@@ -96,7 +99,7 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
         </svg>
       </button>
 
-      {/* Indicadores (Bolinhas) - Com wrap caso as 11 fotos apertem a tela do celular */}
+      {/* Indicadores (Bolinhas) */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center w-full px-4 gap-2 z-10">
         {FOTOS_DO_CASAL.map((_, index) => (
           <button
