@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image"; // <-- IMPORTANTE: O superpoder do Next.js!
+import Image from "next/image"; // Mantendo o superpoder de velocidade do Next.js!
 
+// Array com as 11 fotos ajustadas para paisagem (1920x1080)
 const FOTOS_DO_CASAL = [
   "/images/foto1.jpg",
   "/images/foto2.jpg",
@@ -17,6 +18,7 @@ const FOTOS_DO_CASAL = [
   "/images/foto12.jpg",
 ];
 
+// O componente recebeProps para ser controlado pela página principal (Lifting State Up)
 interface PhotoCarouselProps {
   variant: "fundo" | "fixo";
   indexAtual: number;
@@ -25,6 +27,7 @@ interface PhotoCarouselProps {
 
 export default function PhotoCarousel({ variant, indexAtual, onManualChange }: PhotoCarouselProps) {
   
+  // Função para voltar a foto manualmente
   const handleVoltar = () => {
     if (onManualChange) {
       const novoIndex = (indexAtual - 1 + FOTOS_DO_CASAL.length) % FOTOS_DO_CASAL.length;
@@ -32,6 +35,7 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
     }
   };
 
+  // Função para avançar a foto manualmente
   const handleAvancar = () => {
     if (onManualChange) {
       const novoIndex = (indexAtual + 1) % FOTOS_DO_CASAL.length;
@@ -39,7 +43,7 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
     }
   };
 
-  // --- MODO: PLANO DE FUNDO ---
+  // --- MODO: PLANO DE FUNDO (Sincronizado) ---
   if (variant === "fundo") {
     return (
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-casamento/5">
@@ -49,38 +53,43 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
             src={foto}
             alt={`Foto do casal ${index + 1}`}
             fill
-            priority={index === 0} // A primeira foto carrega imediatamente, as outras em segundo plano!
+            // Carrega a primeira foto com prioridade para velocidade visual
+            priority={index === 0}
             className={`object-cover transition-opacity duration-1000 ease-in-out ${
               index === indexAtual ? "opacity-100" : "opacity-0"
             }`}
           />
         ))}
+        {/* Película de desfoque/clareamento */}
         <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 transition-all"></div>
+        {/* Degradê na base */}
         <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-fundo to-transparent z-20"></div>
       </div>
     );
   }
 
-  // --- MODO: CARROSSEL FIXO (Padrão) ---
+  // --- MODO: CARROSSEL FIXO (Modo Paisagem Sincronizado com Setas) ---
   return (
-    <div className="relative w-full max-w-sm md:max-w-md mx-auto aspect-[9/16] overflow-hidden rounded-[2rem] shadow-lg border border-casamento/10 mb-20 group z-10 bg-white/50">
+    // AJUSTE CSS AQUI: Mudamos aspect-[9/16] para aspect-[16/9] (paisagem)!
+    // Também aumentamos a largura máxima (max-w-4xl) para aproveitar o modo paisagem no desktop.
+    <div className="relative w-full max-w-4xl mx-auto aspect-[16/9] overflow-hidden rounded-[2rem] shadow-lg border border-casamento/10 mb-20 group z-10 bg-white/50">
       {FOTOS_DO_CASAL.map((foto, index) => (
         <Image
           key={index}
           src={foto}
           alt={`Foto do casal ${index + 1}`}
-          fill
-          priority={index === 0} // A primeira foto carrega imediatamente, as outras em segundo plano!
+          fill // Preenche o contêiner mantendo a proporção (cover)
+          priority={index === 0}
           className={`object-cover transition-opacity duration-1000 ease-in-out ${
             index === indexAtual ? "opacity-100" : "opacity-0"
           }`}
         />
       ))}
 
-      {/* SETA ESQUERDA */}
+      {/* SETA ESQUERDA (Simultânea e visível no hover) */}
       <button
         onClick={handleVoltar}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
         aria-label="Foto anterior"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
@@ -88,10 +97,10 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
         </svg>
       </button>
 
-      {/* SETA DIREITA */}
+      {/* SETA DIREITA (Simultânea e visível no hover) */}
       <button
         onClick={handleAvancar}
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
         aria-label="Próxima foto"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
@@ -99,11 +108,12 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
         </svg>
       </button>
 
-      {/* Indicadores (Bolinhas) */}
+      {/* Indicadores (Bolinhas) - com wrap para lidar com 11 fotos */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center w-full px-4 gap-2 z-10">
         {FOTOS_DO_CASAL.map((_, index) => (
           <button
             key={index}
+            // Altera o estado global para que o fundo mude simultaneamente
             onClick={() => onManualChange && onManualChange(index)}
             className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
               index === indexAtual 
