@@ -1,10 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react"; // <-- Importamos os hooks necessários
 import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Countdown from "../components/Countdown";
 import PhotoCarousel from "../components/PhotoCarousel";
 import { CONFIG } from "../../lib/constants"; 
+
+// Definimos o total de fotos para o temporizador saber quando reiniciar
+const TOTAL_FOTOS = 11;
 
 const Icon = ({ path }: { path: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-casamento">
@@ -16,6 +20,19 @@ export default function InicioCasamentoPage() {
   const dataFormatada = CONFIG.casal.data 
     ? new Date(CONFIG.casal.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) 
     : "[Data a definir]";
+
+  // --- ESTADO GLOBAL DO CARROSSEL ---
+  const [globalPhotoIndex, setGlobalPhotoIndex] = useState(0);
+
+  // --- TEMPORIZADOR GLOBAL ---
+  useEffect(() => {
+    // O temporizador roda a cada 4 segundos mudando a foto para todos os componentes
+    const intervalo = setInterval(() => {
+      setGlobalPhotoIndex((prev) => (prev + 1) % TOTAL_FOTOS);
+    }, 4000);
+
+    return () => clearInterval(intervalo);
+  }, []);
 
   // Identifica o que deve ser mostrado baseado no .env
   const tipoCarrossel = CONFIG.visual.tipoCarrossel;
@@ -29,13 +46,11 @@ export default function InicioCasamentoPage() {
       <main className="flex-grow w-full flex flex-col">
         
         {/* SESSÃO HERO (Topo) */}
-        {/* AJUSTE: Mudamos para pt-36 (mais espaço) e min-h-screen para garantir que nada fique espremido */}
         <div className={`relative w-full ${mostrarFundo ? 'min-h-screen flex flex-col justify-center pt-36 pb-20' : 'pt-36 pb-12'}`}>
           
-          {/* CARROSSEL FUNDO (Só aparece se for "fundo" ou "ambos") */}
-          {mostrarFundo && <PhotoCarousel variant="fundo" />}
+          {/* CARROSSEL FUNDO: Agora recebe o indexAtual global */}
+          {mostrarFundo && <PhotoCarousel variant="fundo" indexAtual={globalPhotoIndex} />}
 
-          {/* AJUSTE: Adicionado um mt-4 (margin-top) extra como margem de segurança */}
           <div className="text-center relative z-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             
             <h1 className="font-casamento text-6xl md:text-7xl text-casamento mb-6 drop-shadow-sm">
@@ -62,9 +77,17 @@ export default function InicioCasamentoPage() {
               </Link>
             </div>
             
-            {/* Divisória e CARROSSEL FIXO (Só aparece se for "fixo" ou "ambos") */}
+            {/* Divisória e CARROSSEL FIXO */}
             {mostrarFixo && <div className="w-24 h-1 bg-casamento mx-auto mt-16 rounded-full opacity-50 mb-16"></div>}
-            {mostrarFixo && <PhotoCarousel variant="fixo" />}
+            
+            {/* CARROSSEL FIXO: Recebe o indexAtual e a função para alterá-lo ao clicar na seta */}
+            {mostrarFixo && (
+              <PhotoCarousel 
+                variant="fixo" 
+                indexAtual={globalPhotoIndex} 
+                onManualChange={setGlobalPhotoIndex} 
+              />
+            )}
           </div>
         </div>
 
