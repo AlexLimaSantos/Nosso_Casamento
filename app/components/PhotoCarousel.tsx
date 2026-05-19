@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { createPortal } from "react-dom"; // <-- A mágica do React para Modais!
 
 // Array com as 12 fotos ajustadas para paisagem (1920x1080)
 const FOTOS_DO_CASAL = [
@@ -27,8 +28,14 @@ interface PhotoCarouselProps {
 }
 
 export default function PhotoCarousel({ variant, indexAtual, onManualChange }: PhotoCarouselProps) {
-  // Estado para controlar se a galeria expandida (modal) está aberta
   const [modalAberto, setModalAberto] = useState(false);
+  
+  // Estado necessário para usar o Portal no Next.js (garante que só roda no navegador)
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const abrirModal = () => {
     setModalAberto(true);
@@ -159,14 +166,14 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
         </div>
       </div>
 
-      {/* --- MODAL (GALERIA EXPANDIDA) --- */}
-      {modalAberto && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm animate-in fade-in duration-300 overflow-hidden">
+      {/* --- MODAL (GALERIA EXPANDIDA) - AGORA COM PORTAL --- */}
+      {modalAberto && isMounted && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm animate-in fade-in duration-300 overflow-hidden">
           
           {/* Botão Fechar (X) */}
           <button 
             onClick={fecharModal} 
-            className="absolute top-4 right-4 md:top-8 md:right-8 p-3 text-white hover:text-casamento bg-white/20 hover:bg-white/40 rounded-full z-[10000] transition-all"
+            className="absolute top-4 right-4 md:top-8 md:right-8 p-3 text-white hover:text-casamento bg-white/20 hover:bg-white/40 rounded-full z-[100000] transition-all"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -176,7 +183,7 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
           {/* Seta Esquerda do Modal */}
           <button
             onClick={handleVoltar}
-            className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[10000] p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-all"
+            className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[100000] p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-all"
             aria-label="Foto anterior expandida"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-10 h-10">
@@ -184,7 +191,7 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
             </svg>
           </button>
 
-          {/* Imagem Expandida - Agora conectada com o indexAtual! */}
+          {/* Imagem Expandida */}
           <div className="relative w-full h-full max-w-7xl max-h-[90vh] px-4 md:px-24 flex items-center justify-center">
             {FOTOS_DO_CASAL.map((foto, index) => (
               <Image
@@ -202,14 +209,15 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
           {/* Seta Direita do Modal */}
           <button
             onClick={handleAvancar}
-            className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[10000] p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-all"
+            className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[100000] p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-all"
             aria-label="Próxima foto expandida"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-10 h-10">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
-        </div>
+        </div>,
+        document.body // <-- Teleporta o modal para o <body>, superando a Navbar!
       )}
     </>
   );
