@@ -19,6 +19,7 @@ const FOTOS_DO_CASAL = [
   "/images/foto12.jpg",
 ];
 
+
 // Props para controle pela página principal
 interface PhotoCarouselProps {
   variant: "fundo" | "fixo";
