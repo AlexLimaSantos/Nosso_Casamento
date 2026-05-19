@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image"; // Mantendo o superpoder de velocidade do Next.js!
 
-// Array com as 11 fotos ajustadas para paisagem (1920x1080)
+// Array com as 12 fotos ajustadas para paisagem (1920x1080)
 const FOTOS_DO_CASAL = [
   "/images/foto1.jpg",
   "/images/foto2.jpg",
@@ -18,7 +19,7 @@ const FOTOS_DO_CASAL = [
   "/images/foto12.jpg",
 ];
 
-// O componente recebeProps para ser controlado pela página principal (Lifting State Up)
+// O componente recebe Props para ser controlado pela página principal (Lifting State Up)
 interface PhotoCarouselProps {
   variant: "fundo" | "fixo";
   indexAtual: number;
@@ -26,7 +27,18 @@ interface PhotoCarouselProps {
 }
 
 export default function PhotoCarousel({ variant, indexAtual, onManualChange }: PhotoCarouselProps) {
+  // Estado para controlar se a foto grande (Modal) está aberta ou fechada
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // Fecha o modal se o usuário apertar a tecla "Esc" no teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsModalOpen(false);
+    };
+    if (isModalOpen) window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
+
   // Função para voltar a foto manualmente
   const handleVoltar = () => {
     if (onManualChange) {
@@ -53,9 +65,9 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
             src={foto}
             alt={`Foto do casal ${index + 1}`}
             fill
-            // Carrega a primeira foto com prioridade para velocidade visual
             priority={index === 0}
-            className={`object-cover transition-opacity duration-1000 ease-in-out ${
+            // AJUSTE RESPONSIVO: object-contain no celular (não corta), object-cover no PC (preenche tela)
+            className={`transition-opacity duration-1000 ease-in-out object-contain md:object-cover ${
               index === indexAtual ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -70,60 +82,118 @@ export default function PhotoCarousel({ variant, indexAtual, onManualChange }: P
 
   // --- MODO: CARROSSEL FIXO (Modo Paisagem Sincronizado com Setas) ---
   return (
-    // AJUSTE CSS AQUI: Mudamos aspect-[9/16] para aspect-[16/9] (paisagem)!
-    // Também aumentamos a largura máxima (max-w-4xl) para aproveitar o modo paisagem no desktop.
-    <div className="relative w-full max-w-4xl mx-auto aspect-[16/9] overflow-hidden rounded-[2rem] shadow-lg border border-casamento/10 mb-20 group z-10 bg-white/50">
-      {FOTOS_DO_CASAL.map((foto, index) => (
-        <Image
-          key={index}
-          src={foto}
-          alt={`Foto do casal ${index + 1}`}
-          fill // Preenche o contêiner mantendo a proporção (cover)
-          priority={index === 0}
-          className={`object-cover transition-opacity duration-1000 ease-in-out ${
-            index === indexAtual ? "opacity-100" : "opacity-0"
-          }`}
-        />
-      ))}
-
-      {/* SETA ESQUERDA (Simultânea e visível no hover) */}
-      <button
-        onClick={handleVoltar}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
-        aria-label="Foto anterior"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
-      </button>
-
-      {/* SETA DIREITA (Simultânea e visível no hover) */}
-      <button
-        onClick={handleAvancar}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
-        aria-label="Próxima foto"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-        </svg>
-      </button>
-
-      {/* Indicadores (Bolinhas) - com wrap para lidar com 11 fotos */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center w-full px-4 gap-2 z-10">
-        {FOTOS_DO_CASAL.map((_, index) => (
-          <button
+    <>
+      <div className="relative w-full max-w-4xl mx-auto aspect-[16/9] overflow-hidden rounded-[2rem] shadow-lg border border-casamento/10 mb-20 group z-10 bg-white/50">
+        
+        {FOTOS_DO_CASAL.map((foto, index) => (
+          <Image
             key={index}
-            // Altera o estado global para que o fundo mude simultaneamente
-            onClick={() => onManualChange && onManualChange(index)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-              index === indexAtual 
-                ? "bg-casamento w-6" 
-                : "bg-white/60 hover:bg-white"
+            src={foto}
+            alt={`Foto do casal ${index + 1}`}
+            fill
+            priority={index === 0}
+            className={`object-cover transition-opacity duration-1000 ease-in-out ${
+              index === indexAtual ? "opacity-100" : "opacity-0"
             }`}
-            aria-label={`Ir para a foto ${index + 1}`}
           />
         ))}
+
+        {/* Camada invisível clicável para abrir a foto grande */}
+        <div 
+          className="absolute inset-0 z-10 cursor-pointer" 
+          onClick={() => setIsModalOpen(true)}
+          title="Clique para ampliar"
+        ></div>
+
+        {/* SETA ESQUERDA */}
+        <button
+          onClick={handleVoltar}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
+          aria-label="Foto anterior"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+
+        {/* SETA DIREITA */}
+        <button
+          onClick={handleAvancar}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 text-white drop-shadow-md hover:bg-white/30 rounded-full transition-all hidden group-hover:block"
+          aria-label="Próxima foto"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+
+        {/* Indicadores (Bolinhas) */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center w-full px-4 gap-2 z-20">
+          {FOTOS_DO_CASAL.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => onManualChange && onManualChange(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                index === indexAtual 
+                  ? "bg-casamento w-6" 
+                  : "bg-white/60 hover:bg-white"
+              }`}
+              aria-label={`Ir para a foto ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* --- MODAL (GALERIA EXPANDIDA) --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-300">
+          
+          {/* Botão Fechar */}
+          <button 
+            onClick={() => setIsModalOpen(false)} 
+            className="absolute top-4 right-4 md:top-8 md:right-8 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full z-50 transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Seta Esquerda (Modal) */}
+          <button
+            onClick={handleVoltar}
+            className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-50 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8 md:w-12 md:h-12">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+
+          {/* Seta Direita (Modal) */}
+          <button
+            onClick={handleAvancar}
+            className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-50 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8 md:w-12 md:h-12">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+
+          {/* Imagem Expandida */}
+          <div className="relative w-full h-full max-w-7xl max-h-[90vh] px-4 md:px-24 flex items-center justify-center">
+            {FOTOS_DO_CASAL.map((foto, index) => (
+              <Image
+                key={`modal-${index}`}
+                src={foto}
+                alt={`Foto ampliada ${index + 1}`}
+                fill
+                className={`object-contain transition-opacity duration-300 ease-in-out ${
+                  index === indexAtual ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
