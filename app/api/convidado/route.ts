@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
   try {
     const sheets = await getGoogleSheetsClient();
-    const range = 'Lista de Convidados!B3:G72'; 
+    const range = 'Lista de Convidados!B3:G74'; 
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
